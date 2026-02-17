@@ -1,25 +1,28 @@
 # Planning Agence (Next.js + Supabase)
 
-Application web production-ready (MVP) pour gérer des plannings d'agence en cycles de 4 semaines, avec authentification, rôles, historique et export iCalendar (.ics).
+Application web production-ready (MVP) pour gérer des plannings d'agence en cycles de 4 semaines, avec authentification locale (identifiant + mot de passe), rôles, historique et export iCalendar (.ics).
 
 ## Stack
 
 - Frontend: Next.js (App Router) + TypeScript + Tailwind CSS
-- Backend: Supabase (Auth + Postgres + RLS)
+- Backend: Supabase (Postgres + RLS)
 - Export agenda: iCalendar via `ical-generator`
 - Déploiement: Vercel
 
 ## Fonctionnalités implémentées
 
-- Auth email/password (connexion + déconnexion)
+- Auth locale identifiant/password (connexion + déconnexion)
 - Rôles `admin | manager | employee`
 - Pages protégées via middleware
 - `/plannings`: cycles + semaines ISO cliquables
 - `/planning/[isoWeek]`: vue semaine par jour
+- `/manager/[isoWeek]`: couverture besoins vs shifts (vue manager type Excel)
 - `/me`: export ICS semaine + feed ICS privé
 - `/admin` (admin uniquement):
+  - création d'utilisateurs locaux (`identifiant + mot de passe`)
   - création cycle 4 semaines depuis un lundi
   - génération automatique des 4 weeks ISO
+  - besoins par créneau (activité + volume à couvrir)
   - CRUD shifts simple (create + delete, update endpoint prêt)
   - stub import CSV (`/api/admin/import-csv`)
 - ICS sécurisé par token long non devinable (`calendar_feed_token`)
@@ -37,17 +40,9 @@ Application web production-ready (MVP) pour gérer des plannings d'agence en cyc
 ## 1) Setup Supabase
 
 1. Créer un projet Supabase.
-2. Dans SQL Editor, appliquer les migrations de `supabase/migrations/*.sql`.
-3. Créer des utilisateurs dans Supabase Auth (email/password).
-4. Donner les rôles dans `public.profiles`:
-
-```sql
-update public.profiles set role = 'admin' where id = '...';
-update public.profiles set role = 'manager', team_id = '...' where id = '...';
-update public.profiles set role = 'employee', team_id = '...' where id = '...';
-```
-
-5. Optionnel: exécuter `supabase/seed/seed.sql`.
+2. Dans SQL Editor, appliquer les migrations de `supabase/migrations/*.sql`, y compris `20260217235500_week_needs.sql`.
+3. Exécuter le seed optionnel `supabase/seed/seed.sql` pour créer les données de base + utilisateur `bastien / Test`.
+4. Se connecter avec cet identifiant ou créer de nouveaux utilisateurs via `/admin`.
 
 ## 2) Variables d’environnement
 
@@ -62,6 +57,7 @@ Renseigner:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (server-only)
+- `SESSION_SECRET` (secret de signature cookie session)
 - `NEXT_PUBLIC_APP_URL` (URL publique app, ex. Vercel)
 
 ## 3) Lancer en local

@@ -46,6 +46,17 @@ export type Shift = {
   created_at: string;
 };
 
+export type WeekNeed = {
+  id: string;
+  week_id: string;
+  start_at: string;
+  end_at: string;
+  category: ShiftCategory;
+  required_count: number;
+  comment: string | null;
+  created_at: string;
+};
+
 export type ShiftWithProfile = Shift & {
   profiles?: Pick<Profile, "id" | "full_name" | "team_id"> | null;
 };

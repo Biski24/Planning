@@ -1,9 +1,9 @@
 import { addDays, endOfDay, formatISO, startOfDay } from "date-fns";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
-import { PlanningCycle, Profile, ShiftWithProfile, Week } from "@/lib/types";
+import { createAdminClient } from "@/lib/supabase-admin";
+import { PlanningCycle, Profile, ShiftCategory, ShiftWithProfile, Week, WeekNeed } from "@/lib/types";
 
 export async function getCycles() {
-  const supabase = await createServerSupabaseClient();
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("planning_cycles")
     .select("*")
@@ -18,7 +18,7 @@ export async function getCycles() {
 export async function getWeeksByCycleIds(cycleIds: string[]) {
   if (!cycleIds.length) return [] as Week[];
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("weeks")
     .select("*")
@@ -30,7 +30,7 @@ export async function getWeeksByCycleIds(cycleIds: string[]) {
 }
 
 export async function getWeekByIso(isoWeek: number, isoYear?: number) {
-  const supabase = await createServerSupabaseClient();
+  const supabase = createAdminClient();
   let query = supabase.from("weeks").select("*, planning_cycles!inner(year, is_active)").eq("iso_week_number", isoWeek);
   if (isoYear) {
     query = query.eq("planning_cycles.year", isoYear);
@@ -46,7 +46,7 @@ export async function getShiftsForWeek(options: {
   profile: Profile;
 }) {
   const { weekId, profile } = options;
-  const supabase = await createServerSupabaseClient();
+  const supabase = createAdminClient();
 
   let query = supabase
     .from("shifts")
@@ -63,6 +63,71 @@ export async function getShiftsForWeek(options: {
   const { data, error } = await query;
   if (error) throw error;
   return (data ?? []) as ShiftWithProfile[];
+}
+
+export async function getNeedsForWeek(weekId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("week_needs")
+    .select("*")
+    .eq("week_id", weekId)
+    .order("start_at", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as WeekNeed[];
+}
+
+type SlotCoverage = {
+  slotKey: string;
+  start_at: string;
+  end_at: string;
+  byCategory: Record<ShiftCategory, { required: number; assigned: number }>;
+};
+
+export function buildCoverage(needs: WeekNeed[], shifts: ShiftWithProfile[]) {
+  const slots = new Map<string, SlotCoverage>();
+
+  const ensureSlot = (startAt: string, endAt: string) => {
+    const key = `${startAt}|${endAt}`;
+    if (!slots.has(key)) {
+      slots.set(key, {
+        slotKey: key,
+        start_at: startAt,
+        end_at: endAt,
+        byCategory: {
+          VISIT: { required: 0, assigned: 0 },
+          CALL: { required: 0, assigned: 0 },
+          LEAD: { required: 0, assigned: 0 },
+          ADMIN: { required: 0, assigned: 0 },
+          ABS: { required: 0, assigned: 0 },
+          WFH: { required: 0, assigned: 0 },
+        },
+      });
+    }
+    return slots.get(key)!;
+  };
+
+  for (const need of needs) {
+    const slot = ensureSlot(need.start_at, need.end_at);
+    slot.byCategory[need.category].required += need.required_count;
+  }
+
+  for (const shift of shifts) {
+    for (const slot of slots.values()) {
+      const shiftStart = new Date(shift.start_at).getTime();
+      const shiftEnd = new Date(shift.end_at).getTime();
+      const slotStart = new Date(slot.start_at).getTime();
+      const slotEnd = new Date(slot.end_at).getTime();
+      const overlaps = shiftStart < slotEnd && shiftEnd > slotStart;
+      if (overlaps) {
+        slot.byCategory[shift.category].assigned += 1;
+      }
+    }
+  }
+
+  return Array.from(slots.values()).sort(
+    (a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime()
+  );
 }
 
 export function groupShiftsByDay(shifts: ShiftWithProfile[]) {

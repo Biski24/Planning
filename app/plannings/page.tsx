@@ -69,9 +69,8 @@ export default async function PlanningsPage({
 
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                   {cycleWeeks.map((week) => (
-                    <Link
+                    <div
                       key={week.id}
-                      href={`/planning/${week.iso_week_number}?year=${cycle.year}`}
                       className="rounded-lg border border-slate-700 bg-slate-900/60 p-4 transition hover:border-electric"
                     >
                       <p className="text-sm font-semibold">Semaine {week.iso_week_number}</p>
@@ -79,7 +78,23 @@ export default async function PlanningsPage({
                       <p className="mt-2 text-xs text-slate-500">
                         {formatDate(week.start_date)} - {formatDate(week.end_date)}
                       </p>
-                    </Link>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Link
+                          href={`/planning/${week.iso_week_number}?year=${cycle.year}`}
+                          className="btn-secondary px-3 py-1 text-xs"
+                        >
+                          Planning
+                        </Link>
+                        {(profile.role === "admin" || profile.role === "manager") && (
+                          <Link
+                            href={`/manager/${week.iso_week_number}?year=${cycle.year}`}
+                            className="btn-primary px-3 py-1 text-xs"
+                          >
+                            Vue manager
+                          </Link>
+                        )}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </article>

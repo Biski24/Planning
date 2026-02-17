@@ -17,21 +17,21 @@ export default async function LoginPage({
     <main className="container-page flex min-h-screen items-center justify-center">
       <section className="card w-full max-w-md p-6 shadow-glow">
         <h1 className="mb-1 text-xl font-semibold">Connexion</h1>
-        <p className="mb-5 text-sm text-slate-400">Accédez à votre planning d’agence.</p>
+        <p className="mb-5 text-sm text-slate-400">Identifiant (prénom/login) + mot de passe.</p>
 
         {error && (
           <p className="mb-4 rounded-lg border border-red-700 bg-red-900/30 px-3 py-2 text-sm text-red-200">
-            Erreur: {error}
+            Erreur: identifiant ou mot de passe invalide
           </p>
         )}
 
         <form action="/api/auth/callback" method="post" className="space-y-4">
           <input type="hidden" name="next" value={next ?? "/plannings"} />
           <div>
-            <label className="label" htmlFor="email">
-              Email
+            <label className="label" htmlFor="identifier">
+              Identifiant
             </label>
-            <input className="input" id="email" name="email" type="email" required />
+            <input className="input" id="identifier" name="identifier" type="text" required />
           </div>
           <div>
             <label className="label" htmlFor="password">

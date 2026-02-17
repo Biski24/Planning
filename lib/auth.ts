@@ -1,18 +1,16 @@
 import { redirect } from "next/navigation";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
+import { getSessionFromCookies } from "@/lib/session";
 import { Profile, Role } from "@/lib/types";
 
 export async function getSessionUser() {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  return user;
+  const session = await getSessionFromCookies();
+  if (!session) return null;
+  return { id: session.profileId };
 }
 
 export async function getProfile(userId: string): Promise<Profile | null> {
-  const supabase = await createServerSupabaseClient();
+  const supabase = createAdminClient();
   const { data } = await supabase
     .from("profiles")
     .select("*")

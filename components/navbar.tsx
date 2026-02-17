@@ -15,6 +15,11 @@ export function Navbar({ role }: { role: Role }) {
           <Link className="btn-secondary" href="/me">
             Mon profil
           </Link>
+          {(role === "admin" || role === "manager") && (
+            <Link className="btn-secondary" href="/plannings">
+              Vue manager
+            </Link>
+          )}
           {role === "admin" && (
             <Link className="btn-primary" href="/admin">
               Admin
