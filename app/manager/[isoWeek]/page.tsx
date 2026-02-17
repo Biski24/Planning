@@ -33,8 +33,8 @@ export default async function ManagerWeekPage({
       <main className="container-page space-y-4">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold">Vue Manager - Semaine {week.iso_week_number}</h1>
-            <p className="text-sm text-slate-400">
+            <h1 className="text-3xl font-bold tracking-tight">Vue Manager - Semaine {week.iso_week_number}</h1>
+            <p className="text-sm text-maif-muted">
               {week.planning_cycles.year} | {formatDate(week.start_date)} - {formatDate(week.end_date)}
             </p>
           </div>

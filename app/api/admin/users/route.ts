@@ -15,29 +15,66 @@ export async function POST(request: Request) {
     return redirectBack(request, "/admin?error=user_missing_fields");
   }
 
+  const token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+  const profilePayload = {
+    full_name: fullName,
+    role,
+    team_id: teamId || null,
+    calendar_feed_token: token,
+  };
+
+  let profileId: string | null = null;
+
   const { data: profile, error: profileError } = await admin.supabase
     .from("profiles")
-    .insert({
-      full_name: fullName,
-      role,
-      team_id: teamId || null,
-      calendar_feed_token: crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, ""),
-    })
+    .insert(profilePayload)
     .select("id")
     .single();
 
-  if (profileError || !profile) {
+  if (!profileError && profile?.id) {
+    profileId = profile.id;
+  } else if (profileError?.code === "23503") {
+    // Compatibility fallback when profiles.id still references auth.users(id).
+    const tempEmail = `${username}.${Date.now()}@planning.local`;
+    const randomPassword = `${crypto.randomUUID()}${crypto.randomUUID()}`;
+    const { data: authUser, error: authError } = await admin.supabase.auth.admin.createUser({
+      email: tempEmail,
+      password: randomPassword,
+      email_confirm: true,
+      user_metadata: { full_name: fullName, generated: true },
+    });
+
+    if (authError || !authUser.user?.id) {
+      return redirectBack(request, "/admin?error=create_auth_user_failed");
+    }
+
+    const { data: profileWithId, error: profileWithIdError } = await admin.supabase
+      .from("profiles")
+      .insert({
+        id: authUser.user.id,
+        ...profilePayload,
+      })
+      .select("id")
+      .single();
+
+    if (profileWithIdError || !profileWithId?.id) {
+      return redirectBack(request, "/admin?error=create_profile_failed");
+    }
+    profileId = profileWithId.id;
+  }
+
+  if (!profileId) {
     return redirectBack(request, "/admin?error=create_profile_failed");
   }
 
   const { error: userError } = await admin.supabase.rpc("create_app_user", {
-    p_profile_id: profile.id,
+    p_profile_id: profileId,
     p_username: username,
     p_password: password,
   });
 
   if (userError) {
-    await admin.supabase.from("profiles").delete().eq("id", profile.id);
+    await admin.supabase.from("profiles").delete().eq("id", profileId);
     return redirectBack(request, "/admin?error=create_user_failed");
   }
 

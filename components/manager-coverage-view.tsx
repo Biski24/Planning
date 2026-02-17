@@ -14,14 +14,14 @@ const visibleCategories: ShiftCategory[] = ["VISIT", "CALL", "LEAD", "ADMIN"];
 
 export function ManagerCoverageView({ rows }: { rows: CoverageRow[] }) {
   if (!rows.length) {
-    return <p className="text-sm text-slate-400">Aucun besoin configuré sur cette semaine.</p>;
+    return <p className="text-sm text-maif-muted">Aucun besoin configuré sur cette semaine.</p>;
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full text-sm">
+    <div className="table-shell">
+      <table className="table-base">
         <thead>
-          <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
+          <tr>
             <th className="px-3 py-2">Jour / Heure</th>
             {visibleCategories.map((cat) => (
               <th key={cat} className="px-3 py-2">
@@ -39,8 +39,8 @@ export function ManagerCoverageView({ rows }: { rows: CoverageRow[] }) {
             }, 0);
 
             return (
-              <tr key={row.slotKey} className="border-b border-slate-900/70">
-                <td className="px-3 py-2 text-slate-200">
+              <tr key={row.slotKey}>
+                <td className="px-3 py-2 text-maif-text">
                   {format(new Date(row.start_at), "EEE dd/MM HH:mm", { locale: fr })} -{" "}
                   {format(new Date(row.end_at), "HH:mm", { locale: fr })}
                 </td>
@@ -49,15 +49,15 @@ export function ManagerCoverageView({ rows }: { rows: CoverageRow[] }) {
                   const delta = item.required - item.assigned;
                   return (
                     <td key={cat} className="px-3 py-2">
-                      <span className="text-slate-300">{item.assigned}</span>
-                      <span className="text-slate-500"> / {item.required}</span>
-                      <span className={delta > 0 ? "ml-2 text-amber-300" : "ml-2 text-emerald-300"}>
+                      <span className="text-maif-text">{item.assigned}</span>
+                      <span className="text-maif-muted"> / {item.required}</span>
+                      <span className={delta > 0 ? "ml-2 text-maif-primary font-semibold" : "ml-2 text-emerald-700"}>
                         {delta > 0 ? `-${delta}` : "OK"}
                       </span>
                     </td>
                   );
                 })}
-                <td className={gap > 0 ? "px-3 py-2 text-amber-300" : "px-3 py-2 text-emerald-300"}>
+                <td className={gap > 0 ? "px-3 py-2 text-maif-primary font-semibold" : "px-3 py-2 text-emerald-700"}>
                   {gap > 0 ? `${gap} manquant(s)` : "Couvert"}
                 </td>
               </tr>

@@ -1,32 +1,41 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import clsx from "clsx";
 import { Role } from "@/lib/types";
+
+function NavItem({ href, label }: { href: string; label: string }) {
+  const pathname = usePathname();
+  const active = pathname === href || (href !== "/plannings" && pathname.startsWith(href));
+  return (
+    <Link
+      href={href}
+      className={clsx(
+        "rounded-[10px] px-3 py-2 text-sm font-medium transition",
+        active ? "bg-red-50 text-maif-primary" : "text-maif-muted hover:bg-maif-surfaceAlt hover:text-maif-text"
+      )}
+    >
+      {label}
+    </Link>
+  );
+}
 
 export function Navbar({ role }: { role: Role }) {
   return (
-    <nav className="border-b border-slate-800 bg-slate-950/70 backdrop-blur">
+    <nav className="sticky top-0 z-30 border-b border-maif-border bg-white/95 backdrop-blur">
       <div className="container-page flex items-center justify-between py-3">
-        <Link href="/plannings" className="text-sm font-semibold text-white">
-          Planning Agence
+        <Link href="/plannings" className="text-base font-bold tracking-tight text-maif-primary">
+          MAIF Planning
         </Link>
-        <div className="flex items-center gap-2 text-sm">
-          <Link className="btn-secondary" href="/plannings">
-            Plannings
-          </Link>
-          <Link className="btn-secondary" href="/me">
-            Mon profil
-          </Link>
-          {(role === "admin" || role === "manager") && (
-            <Link className="btn-secondary" href="/plannings">
-              Vue manager
-            </Link>
-          )}
-          {role === "admin" && (
-            <Link className="btn-primary" href="/admin">
-              Admin
-            </Link>
-          )}
-          <form action="/api/auth/logout" method="post">
-            <button className="btn-secondary" type="submit">
+
+        <div className="flex flex-wrap items-center gap-1">
+          <NavItem href="/plannings" label="Plannings" />
+          <NavItem href="/me" label="Mon profil" />
+          {(role === "admin" || role === "manager") && <NavItem href="/plannings" label="Vue manager" />}
+          {role === "admin" && <NavItem href="/admin/planning" label="Admin" />}
+          <form action="/api/auth/logout" method="post" className="ml-1">
+            <button className="btn-secondary px-3 py-2 text-xs" type="submit">
               Déconnexion
             </button>
           </form>

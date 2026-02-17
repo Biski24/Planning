@@ -3,39 +3,66 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  @apply bg-bg text-slate-100 min-h-screen;
-  background-image: radial-gradient(circle at 20% 0%, rgba(47, 109, 255, 0.2), transparent 45%),
-    radial-gradient(circle at 80% 0%, rgba(126, 162, 255, 0.1), transparent 40%);
+  @apply bg-bg text-maif-text min-h-screen antialiased;
 }
 
 .container-page {
-  @apply mx-auto w-full max-w-6xl px-4 py-6;
+  @apply mx-auto w-full max-w-7xl px-4 py-6 md:px-6;
 }
 
 .card {
-  @apply rounded-xl border border-slate-800 bg-panel/80 backdrop-blur-sm;
+  @apply rounded-2xl border border-maif-border bg-maif-surface shadow-sm;
 }
 
 .btn {
-  @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition;
+  @apply inline-flex items-center justify-center rounded-[10px] px-4 py-2 text-sm font-semibold transition;
 }
 
 .btn-primary {
-  @apply btn bg-electric text-white hover:bg-electricSoft;
+  @apply btn bg-maif-primary text-white hover:bg-maif-primaryHover;
 }
 
 .btn-secondary {
-  @apply btn border border-slate-700 bg-slate-900/60 hover:border-electricSoft;
+  @apply btn border border-maif-border bg-maif-surface text-maif-text hover:bg-maif-surfaceAlt;
+}
+
+.btn-outline {
+  @apply btn border border-maif-primary text-maif-primary hover:bg-red-50;
 }
 
 .input {
-  @apply w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm focus:border-electric focus:outline-none;
+  @apply w-full rounded-[10px] border border-maif-border bg-white px-3 py-2 text-sm text-maif-text focus:border-maif-primary focus:outline-none focus:ring-2 focus:ring-maif-ring;
 }
 
 .label {
-  @apply mb-1 block text-xs uppercase tracking-wide text-slate-400;
+  @apply mb-1 block text-xs uppercase tracking-wide text-maif-muted;
+}
+
+.table-shell {
+  @apply overflow-x-auto rounded-xl border border-maif-border bg-white;
+}
+
+.table-base {
+  @apply min-w-full text-sm;
+}
+
+.table-base thead tr {
+  @apply border-b border-maif-border text-left text-xs uppercase tracking-wide text-maif-muted;
+}
+
+.table-base tbody tr {
+  @apply border-b border-maif-border/80;
+}
+
+.table-base tbody tr:nth-child(odd) {
+  @apply bg-maif-surfaceAlt/60;
+}
+
+.table-base th,
+.table-base td {
+  @apply px-3 py-2;
 }

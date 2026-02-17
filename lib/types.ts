@@ -12,6 +12,7 @@ export type Profile = {
   full_name: string | null;
   role: Role;
   team_id: string | null;
+  employee_id?: string | null;
   calendar_feed_token: string;
   created_at: string;
 };

@@ -27,11 +27,11 @@ export default async function PlanningsPage({
       <main className="container-page space-y-6">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold">Cycles de planning</h1>
-            <p className="text-sm text-slate-400">Cycle actif en premier, historique accessible par année.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-maif-text">Cycles de planning</h1>
+            <p className="text-sm text-maif-muted">Cycle actif en premier, historique accessible par année.</p>
           </div>
           <form className="card p-2">
-            <label className="mr-2 text-xs text-slate-400">Année</label>
+            <label className="mr-2 text-xs text-maif-muted">Année</label>
             <select className="input inline-block w-auto" name="year" defaultValue={year ?? ""}>
               <option value="">Toutes</option>
               {years.map((value) => (
@@ -56,12 +56,12 @@ export default async function PlanningsPage({
                     <h2 className="text-lg font-semibold">
                       {cycle.year} - Cycle {cycle.cycle_number}
                     </h2>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-maif-muted">
                       {formatDate(cycle.start_date)} au {formatDate(cycle.end_date)}
                     </p>
                   </div>
                   {cycle.is_active && (
-                    <span className="rounded-full border border-electric bg-electric/20 px-3 py-1 text-xs text-electricSoft">
+                    <span className="rounded-full border border-maif-primary bg-red-50 px-3 py-1 text-xs font-semibold text-maif-primary">
                       Actif
                     </span>
                   )}
@@ -71,11 +71,11 @@ export default async function PlanningsPage({
                   {cycleWeeks.map((week) => (
                     <div
                       key={week.id}
-                      className="rounded-lg border border-slate-700 bg-slate-900/60 p-4 transition hover:border-electric"
+                      className={`rounded-xl border p-4 transition ${cycle.is_active ? "border-maif-primary/50 bg-white" : "border-maif-border bg-white"} hover:shadow-sm`}
                     >
-                      <p className="text-sm font-semibold">Semaine {week.iso_week_number}</p>
-                      <p className="text-xs text-slate-400">{cycle.year}</p>
-                      <p className="mt-2 text-xs text-slate-500">
+                      <p className="text-sm font-semibold text-maif-text">Semaine {week.iso_week_number}</p>
+                      <p className="text-xs text-maif-muted">{cycle.year}</p>
+                      <p className="mt-2 text-xs text-maif-muted">
                         {formatDate(week.start_date)} - {formatDate(week.end_date)}
                       </p>
                       <div className="mt-3 flex flex-wrap gap-2">

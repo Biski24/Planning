@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/navbar";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase-admin";
+import Link from "next/link";
 
 type YearRel = { year: number } | { year: number }[] | null;
 type NameRel = { full_name: string | null } | { full_name: string | null }[] | null;
@@ -48,8 +49,13 @@ function getNeedIsoWeek(value: NeedWeekRel): number | undefined {
   return Array.isArray(value) ? value[0]?.iso_week_number : value.iso_week_number;
 }
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; success?: string }>;
+}) {
   const { profile } = await requireRole(["admin"]);
+  const { error, success } = await searchParams;
   const supabase = createAdminClient();
 
   const [{ data: teams }, { data: users }, { data: weeks }, { data: shifts }, { data: needs }] = await Promise.all([
@@ -96,9 +102,26 @@ export default async function AdminPage() {
       <Navbar role={profile.role} />
       <main className="container-page space-y-6">
         <header>
-          <h1 className="text-2xl font-bold">Admin</h1>
-          <p className="text-sm text-slate-400">Gestion des cycles et des shifts.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Admin</h1>
+          <p className="text-sm text-maif-muted">Gestion des cycles et des shifts.</p>
+          <div className="mt-3">
+            <Link href="/admin/planning" className="btn-primary">
+              Ouvrir Admin Planning (nouveau module)
+            </Link>
+          </div>
         </header>
+
+        {error && (
+          <div className="rounded-lg border border-maif-primary/30 bg-red-50 px-4 py-3 text-sm text-maif-primary">
+            Erreur: {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            Succès: {success}
+          </div>
+        )}
 
         <section className="card p-4">
           <h2 className="mb-3 text-lg font-semibold">Créer un utilisateur (identifiant + mdp)</h2>

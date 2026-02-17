@@ -16,25 +16,25 @@ export default async function MePage() {
       <Navbar role={profile.role} />
       <main className="container-page space-y-6">
         <header>
-          <h1 className="text-2xl font-bold">Mon profil</h1>
-          <p className="text-sm text-slate-400">Exportez votre agenda personnel au format iCalendar.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Mon profil</h1>
+          <p className="text-sm text-maif-muted">Exportez votre agenda personnel au format iCalendar.</p>
         </header>
 
         <section className="card p-4 text-sm">
           <p>
-            <span className="text-slate-400">Nom:</span> {profile.full_name ?? "-"}
+            <span className="text-maif-muted">Nom:</span> {profile.full_name ?? "-"}
           </p>
           <p>
-            <span className="text-slate-400">Rôle:</span> {profile.role}
+            <span className="text-maif-muted">Rôle:</span> {profile.role}
           </p>
         </section>
 
         <section className="card p-4">
           <h2 className="mb-2 text-lg font-semibold">Abonnement agenda (.ics)</h2>
-          <p className="mb-4 text-sm text-slate-400">
+          <p className="mb-4 text-sm text-maif-muted">
             URL privée à copier dans Google Calendar / Apple Calendar (abonnement):
           </p>
-          <code className="block overflow-x-auto rounded-lg border border-slate-700 bg-slate-900/60 p-3 text-xs">
+          <code className="block overflow-x-auto rounded-lg border border-maif-border bg-maif-surfaceAlt p-3 text-xs">
             {feedUrl}
           </code>
           <div className="mt-4 flex flex-wrap gap-2">

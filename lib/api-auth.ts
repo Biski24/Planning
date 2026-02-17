@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { getSessionFromCookies } from "@/lib/session";
+import { AUTH_DISABLED } from "@/lib/flags";
 
 export async function requireAdminApi() {
+  if (AUTH_DISABLED) {
+    return { supabase: createAdminClient(), user: { id: "dev-admin" } };
+  }
+
   const session = await getSessionFromCookies();
   if (!session) {
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };

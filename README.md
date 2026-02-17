@@ -24,6 +24,12 @@ Application web production-ready (MVP) pour gérer des plannings d'agence en cyc
   - génération automatique des 4 weeks ISO
   - besoins par créneau (activité + volume à couvrir)
   - CRUD shifts simple (create + delete, update endpoint prêt)
+- `/admin/planning` (nouveau module Excel-like):
+  - onglet Employés (CRUD + seed liste conseillers/alternants)
+  - onglet Cycles 4 semaines (création + activation)
+  - onglet Besoins (grille 30 min jour x créneau x activité, bulk upsert)
+  - route `/admin/planning/[isoWeek]` pour éditer les affectations par employé/créneau
+  - calcul couverture/différentiel visible sur `/planning/[isoWeek]`
   - stub import CSV (`/api/admin/import-csv`)
 - ICS sécurisé par token long non devinable (`calendar_feed_token`)
   - `GET /api/ics/feed?token=...`
@@ -40,7 +46,9 @@ Application web production-ready (MVP) pour gérer des plannings d'agence en cyc
 ## 1) Setup Supabase
 
 1. Créer un projet Supabase.
-2. Dans SQL Editor, appliquer les migrations de `supabase/migrations/*.sql`, y compris `20260217235500_week_needs.sql`.
+2. Dans SQL Editor, appliquer les migrations de `supabase/migrations/*.sql`, y compris:
+   - `20260217235500_week_needs.sql`
+   - `20260218001000_planning_editor_mvp.sql`
 3. Exécuter le seed optionnel `supabase/seed/seed.sql` pour créer les données de base + utilisateur `bastien / Test`.
 4. Se connecter avec cet identifiant ou créer de nouveaux utilisateurs via `/admin`.
 
@@ -68,6 +76,15 @@ npm run dev
 ```
 
 App locale: `http://localhost:3000`
+
+## Flow test (module planning)
+
+1. Aller sur `/admin/planning?tab=employees` puis cliquer `Seed employés par défaut`.
+2. Aller sur `/admin/planning?tab=cycles` et créer un cycle 4 semaines.
+3. Aller sur `/admin/planning?tab=needs` et saisir les besoins par créneau.
+4. Ouvrir `/admin/planning/[isoWeek]` depuis le bouton `Ouvrir planning editor`.
+5. Affecter les activités par employé et sauvegarder le jour.
+6. Vérifier la vue finale sur `/planning/[isoWeek]` (affectations + extrait besoins vs couverture).
 
 ## 4) Déployer sur Vercel
 
