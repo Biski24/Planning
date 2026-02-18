@@ -34,6 +34,7 @@ export function Navbar({ role }: { role: Role }) {
           <NavItem href="/me" label="Mon profil" />
           {(role === "admin" || role === "manager") && <NavItem href="/plannings" label="Vue manager" />}
           {role === "admin" && <NavItem href="/admin/planning" label="Admin" />}
+          {role === "admin" && <NavItem href="/admin/import" label="Import Excel" />}
           <form action="/api/auth/logout" method="post" className="ml-1">
             <button className="btn-secondary px-3 py-2 text-xs" type="submit">
               Déconnexion

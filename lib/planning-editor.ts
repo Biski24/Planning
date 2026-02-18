@@ -11,6 +11,7 @@ export const PLANNING_CATEGORIES = [
   "TRAINING",
   "WFH",
   "ABS",
+  "OTHER",
 ] as const;
 
 export type PlanningCategory = (typeof PLANNING_CATEGORIES)[number];
@@ -25,6 +26,7 @@ export const CATEGORY_LABELS: Record<PlanningCategory, string> = {
   TRAINING: "Formation",
   WFH: "Télétravail",
   ABS: "Absence",
+  OTHER: "Autre",
 };
 
 export type Employee = {

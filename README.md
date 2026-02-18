@@ -30,6 +30,11 @@ Application web production-ready (MVP) pour gérer des plannings d'agence en cyc
   - onglet Besoins (grille 30 min jour x créneau x activité, bulk upsert)
   - route `/admin/planning/[isoWeek]` pour éditer les affectations par employé/créneau
   - calcul couverture/différentiel visible sur `/planning/[isoWeek]`
+- `/admin/import`:
+  - upload `.xlsm/.xlsx`
+  - création/import d’un cycle historique 4 semaines
+  - import affectations 30 min (lun-sam, 08:00-19:30)
+  - résumé import (employés créés, assignments, vides ignorés, activités inconnues)
   - stub import CSV (`/api/admin/import-csv`)
 - ICS sécurisé par token long non devinable (`calendar_feed_token`)
   - `GET /api/ics/feed?token=...`
@@ -49,6 +54,7 @@ Application web production-ready (MVP) pour gérer des plannings d'agence en cyc
 2. Dans SQL Editor, appliquer les migrations de `supabase/migrations/*.sql`, y compris:
    - `20260217235500_week_needs.sql`
    - `20260218001000_planning_editor_mvp.sql`
+   - `20260218010000_assignment_category_other.sql`
 3. Exécuter le seed optionnel `supabase/seed/seed.sql` pour créer les données de base + utilisateur `bastien / Test`.
 4. Se connecter avec cet identifiant ou créer de nouveaux utilisateurs via `/admin`.
 
@@ -85,6 +91,18 @@ App locale: `http://localhost:3000`
 4. Ouvrir `/admin/planning/[isoWeek]` depuis le bouton `Ouvrir planning editor`.
 5. Affecter les activités par employé et sauvegarder le jour.
 6. Vérifier la vue finale sur `/planning/[isoWeek]` (affectations + extrait besoins vs couverture).
+
+## Import Excel (historique)
+
+1. Aller sur `/admin/import`.
+2. Uploader le fichier `.xlsm` contenant les onglets `Semaine 1..4`.
+3. Renseigner:
+   - soit `date début cycle (lundi)`,
+   - soit `année ISO + semaine ISO de départ`,
+   - `cycle_number`.
+4. Lancer `Importer`.
+5. Le cycle est créé en `is_active=false` (historique) avec 4 semaines ISO et les affectations associées.
+6. Vérifier dans `/plannings` que le cycle importé apparaît dans l’historique.
 
 ## 4) Déployer sur Vercel
 
