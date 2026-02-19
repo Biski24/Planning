@@ -105,9 +105,14 @@ export default async function AdminPage({
           <h1 className="text-3xl font-bold tracking-tight">Admin</h1>
           <p className="text-sm text-maif-muted">Gestion des cycles et des shifts.</p>
           <div className="mt-3">
-            <Link href="/admin/planning" className="btn-primary">
-              Ouvrir Admin Planning (nouveau module)
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/admin/planning" className="btn-primary">
+                Ouvrir Admin Planning (nouveau module)
+              </Link>
+              <Link href="/admin/import" className="btn-secondary">
+                Importer un planning Excel
+              </Link>
+            </div>
           </div>
         </header>
 

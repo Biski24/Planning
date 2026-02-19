@@ -7,6 +7,7 @@ import { getNeedSlots, getWeekByIsoForEditor, getWeeksSummary } from "@/lib/plan
 import { EmployeesPanel } from "./employees-panel";
 import { CyclesPanel } from "./cycles-panel";
 import { NeedsPanel } from "./needs-panel";
+import { BootstrapPanel } from "./bootstrap-panel";
 
 const TABS = ["employees", "cycles", "needs"] as const;
 
@@ -25,7 +26,7 @@ export default async function AdminPlanningPage({
   const [employeesRes, cyclesRes, weeksSummary] = await Promise.all([
     supabase.from("employees").select("id, full_name, type, is_active").order("full_name", { ascending: true }),
     supabase.from("planning_cycles").select("*").order("year", { ascending: false }).order("cycle_number", { ascending: false }),
-    getWeeksSummary(40),
+    getWeeksSummary(120),
   ]);
 
   const selectedWeek =
@@ -59,6 +60,8 @@ export default async function AdminPlanningPage({
             </Link>
           </div>
         </header>
+
+        <BootstrapPanel />
 
         {currentTab === "employees" && <EmployeesPanel employees={(employeesRes.data ?? []) as any} />}
         {currentTab === "cycles" && <CyclesPanel cycles={(cyclesRes.data ?? []) as any} />}

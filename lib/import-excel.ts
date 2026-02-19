@@ -45,7 +45,13 @@ const DAY_MAP: Record<string, number> = {
 const ACTIVITY_MAP: Record<string, string> = {
   visites: "VISIT",
   visite: "VISIT",
+  "acc. direct.": "OTHER",
+  "acc direct": "OTHER",
   tel: "CALL",
+  "tel.": "CALL",
+  "tel ": "CALL",
+  "tel. ": "CALL",
+  "tél": "CALL",
   téléphone: "CALL",
   telephone: "CALL",
   rdv: "RDV",
@@ -112,6 +118,14 @@ function parseTimeRange(raw: string): { start: string; end: string } | null {
   return { start: fix(match[1]), end: fix(match[2]) };
 }
 
+function parseWeekOffset(raw: string): number | null {
+  const value = normalize(raw);
+  const match = value.match(/(?:semaine\s*)?([1-4])\b/);
+  if (!match) return null;
+  const week = Number(match[1]);
+  return Number.isNaN(week) ? null : week - 1;
+}
+
 function mapActivity(raw: string) {
   const key = normalize(raw);
   const category = ACTIVITY_MAP[key] ?? "OTHER";
@@ -119,6 +133,97 @@ function mapActivity(raw: string) {
     category,
     sourceActivity: raw,
     note: category === "OTHER" ? `Excel: ${raw}` : null,
+  };
+}
+
+function findColumnIndexByKeywords(headers: string[], keywords: string[]) {
+  return headers.findIndex((header) => {
+    const h = normalize(header);
+    return keywords.some((keyword) => h.includes(normalize(keyword)));
+  });
+}
+
+function parseWorkbookDataSheet(workbook: ExcelJS.Workbook) {
+  const ws =
+    workbook.worksheets.find((sheet) => normalize(sheet.name) === "donnees") ??
+    workbook.worksheets.find((sheet) => normalize(sheet.name).includes("donnees"));
+  if (!ws) return null;
+
+  const maxHeaderScanRows = Math.min(25, ws.rowCount);
+  let headerRowIndex = -1;
+  let colWeek = -1;
+  let colDay = -1;
+  let colEmployee = -1;
+  let colActivity = -1;
+  let colSlot = -1;
+
+  for (let r = 1; r <= maxHeaderScanRows; r += 1) {
+    const row = ws.getRow(r);
+    const headers = Array.from({ length: Math.max(row.cellCount, 12) }, (_, i) =>
+      cleanText(row.getCell(i + 1).value)
+    );
+
+    const week = findColumnIndexByKeywords(headers, ["semaine"]);
+    const day = findColumnIndexByKeywords(headers, ["jour"]);
+    const employee = findColumnIndexByKeywords(headers, ["conseiller", "employe", "employee", "nom"]);
+    const activity = findColumnIndexByKeywords(headers, ["activite", "activité"]);
+    const slot = findColumnIndexByKeywords(headers, ["creneau", "créneau", "horaire"]);
+
+    if (week >= 0 && day >= 0 && employee >= 0 && activity >= 0 && slot >= 0) {
+      headerRowIndex = r;
+      colWeek = week + 1;
+      colDay = day + 1;
+      colEmployee = employee + 1;
+      colActivity = activity + 1;
+      colSlot = slot + 1;
+      break;
+    }
+  }
+
+  if (headerRowIndex < 0) {
+    return null;
+  }
+
+  const parsed: ParsedAssignment[] = [];
+  const unknown = new Set<string>();
+  let emptyCellsIgnored = 0;
+
+  for (let r = headerRowIndex + 1; r <= ws.rowCount; r += 1) {
+    const row = ws.getRow(r);
+
+    const weekOffset = parseWeekOffset(cleanText(row.getCell(colWeek).value));
+    const dayOfWeek = DAY_MAP[normalize(cleanText(row.getCell(colDay).value))];
+    const employeeName = cleanText(row.getCell(colEmployee).value);
+    const activity = cleanText(row.getCell(colActivity).value);
+    const slot = parseTimeRange(cleanText(row.getCell(colSlot).value));
+
+    if (weekOffset == null || !dayOfWeek || dayOfWeek > 6 || !employeeName || !slot) continue;
+    if (!activity) {
+      emptyCellsIgnored += 1;
+      continue;
+    }
+
+    const mapped = mapActivity(activity);
+    if (mapped.category === "OTHER") unknown.add(activity);
+
+    parsed.push({
+      weekOffset,
+      employeeName,
+      dayOfWeek,
+      startTime: slot.start,
+      endTime: slot.end,
+      sourceActivity: mapped.sourceActivity,
+      category: mapped.category,
+      note: mapped.note,
+    });
+  }
+
+  return {
+    parsed,
+    emptyCellsIgnored,
+    unknownActivities: Array.from(unknown),
+    employeeNames: Array.from(new Set(parsed.map((p) => p.employeeName))),
+    source: "donnees" as const,
   };
 }
 
@@ -166,6 +271,11 @@ function extractWeekSheets(workbook: ExcelJS.Workbook) {
 function parseWorkbook(fileBuffer: Uint8Array) {
   const workbook = new ExcelJS.Workbook();
   return workbook.xlsx.load(fileBuffer as any).then(() => {
+    const parsedFromData = parseWorkbookDataSheet(workbook);
+    if (parsedFromData && parsedFromData.parsed.length > 0) {
+      return parsedFromData;
+    }
+
     const weekSheets = extractWeekSheets(workbook);
     if (weekSheets.length === 0) {
       throw new Error("Aucun onglet 'Semaine 1..4' détecté");
@@ -222,6 +332,7 @@ function parseWorkbook(fileBuffer: Uint8Array) {
       emptyCellsIgnored,
       unknownActivities: Array.from(unknown),
       employeeNames: Array.from(new Set(parsed.map((p) => p.employeeName))),
+      source: "weeks" as const,
     };
   });
 }
@@ -317,6 +428,10 @@ export async function importExcelPlanning(params: ImportParams): Promise<ImportS
       };
     })
     .filter(Boolean) as Array<Record<string, unknown>>;
+
+  if (assignments.length === 0) {
+    throw new Error("Aucune affectation exploitable trouvée dans le fichier Excel");
+  }
 
   const { error: assignmentError } = await supabase
     .from("assignments")
